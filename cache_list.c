@@ -26,10 +26,10 @@ struct Cache_List *Cache_List_Create(){
  	//on part de la fin de la liste et on supprime tout
  	while(current->prev){	
  		current = current->prev;
- 		*(current->next) = NULL;
+ 		free(current->next);
  	}
 
- 	*current = NULL;	//On supprime le dernier élèment de la liste
+ 	free(current);	//On supprime le dernier élèment de la liste
  }
 
 /*! Insertion d'un élément à la fin */
