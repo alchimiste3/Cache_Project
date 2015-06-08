@@ -33,7 +33,22 @@ struct Cache_List *Cache_List_Create(){
  }
 
 /*! Insertion d'un élément à la fin */
-void Cache_List_Append(struct Cache_List *list, struct Cache_Block_Header *pbh);
+void Cache_List_Append(struct Cache_List *list, struct Cache_Block_Header *pbh){
+	struct Cache_List *current = list;
+	while(current->next){
+		current = current->next;
+	}
+	
+	//Création du nouvel élément
+	struct Cache_List *newElem = malloc(sizeof(struct Cache_List));
+	newElem->pheader = pbh;
+	newElem->next = NULL;
+	newElem->prev = list;
+
+	list->next = newElem;	//Insertion de l'élément à la fin de la liste
+
+}
+
 /*! Insertion d'un élément au début*/
 void Cache_List_Prepend(struct Cache_List *list, struct Cache_Block_Header *pbh);
 
