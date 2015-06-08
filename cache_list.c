@@ -50,10 +50,32 @@ void Cache_List_Append(struct Cache_List *list, struct Cache_Block_Header *pbh){
 }
 
 /*! Insertion d'un élément au début*/
-void Cache_List_Prepend(struct Cache_List *list, struct Cache_Block_Header *pbh);
+void Cache_List_Prepend(struct Cache_List *list, struct Cache_Block_Header *pbh){
+	//Création du nouvel élément
+	struct Cache_List *newElem = malloc(sizeof(struct Cache_List));
+	newElem->pheader = pbh;
+	newElem->next = list;
+	newElem->prev = NULL;
+
+	//On se positionne au début de la liste
+	struct Cache_List *current = list;
+	while(current->prev){
+		current = current->prev;
+	}
+
+	current->prev = newElem; //On ajoute l'élément à la fin de la liste
+}
 
 /*! Retrait du premier élément */
-struct Cache_Block_Header *Cache_List_Remove_First(struct Cache_List *list);
+struct Cache_Block_Header *Cache_List_Remove_First(struct Cache_List *list){
+	//On se positionne au début de la liste
+	struct Cache_List *current = list;
+	while(current->prev){
+		current = current->prev;
+	}
+	(current->next)->prev = NULL;
+	free(current);
+}
 
 /*! Retrait du dernier élément 
  * Supprime le dernier élément de la liste.
