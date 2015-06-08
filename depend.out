@@ -1,2 +1,4 @@
+LRU_strategy.o: LRU_strategy.c strategy.h low_cache.h cache.h \
+ cache_list.h random.h
 RAND_strategy.o: RAND_strategy.c strategy.h low_cache.h cache.h random.h
 tst_Cache.o: tst_Cache.c cache.h strategy.h random.h
