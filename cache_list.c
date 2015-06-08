@@ -5,7 +5,7 @@
 struct Cache_List *Cache_List_Create(){
 	struct Cache_List *listVide = malloc(sizeof(struct Cache_List));
 
-	struct Cache_Block_Header *head;
+	struct Cache_Block_Header *head = NULL;
 	listVide->pheader = head;
 
 	listVide->next = NULL;
