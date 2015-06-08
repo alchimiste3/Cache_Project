@@ -132,12 +132,12 @@ struct Cache_Block_Header * Cache_List_Remove(struct Cache_List *list, struct Ca
             return liste_a_parcourir->pheader;
         }
     }
-    return liste_a_parcourir->pheader;s
+    return liste_a_parcourir->pheader;
 }
 
 /*! Remise en l'état de liste vide */
 void Cache_List_Clear(struct Cache_List *list){
-    list->pheaders = NULL;
+    list->pheader = NULL;
     list->prev = NULL;
     list->next = NULL;
 }
