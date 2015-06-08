@@ -3,7 +3,7 @@
 
 /*! Création d'une liste de blocs */
 struct Cache_List *Cache_List_Create(){
-	struct Cache_List *listVide;
+	struct Cache_List *listVide = malloc(sizeof(struct Cache_List));
 
 	struct Cache_Block_Header *head;
 	listVide->pheader = head;
@@ -14,13 +14,23 @@ struct Cache_List *Cache_List_Create(){
 	return listVide;
 }
 
-// /*! Destruction d'une liste de blocs */
-//  void Cache_List_Delete(struct Cache_List *list){
-//  	struct Cache_List* current = list;
-//  	while(current){
- 		
-//  	}
-//  }
+/*! Destruction d'une liste de blocs */
+ void Cache_List_Delete(struct Cache_List *list){
+ 	struct Cache_List* current = list;
+ 	
+ 	//On se positionne à la fin de la liste 
+ 	while(current->next){
+ 		current = current->next;
+ 	}
+
+ 	//on part de la fin de la liste et on supprime tout
+ 	while(current->prev){	
+ 		current = current->prev;
+ 		*(current->next) = NULL;
+ 	}
+
+ 	*current = NULL;	//On supprime le dernier élèment de la liste
+ }
 
 /*! Insertion d'un élément à la fin */
 void Cache_List_Append(struct Cache_List *list, struct Cache_Block_Header *pbh);
