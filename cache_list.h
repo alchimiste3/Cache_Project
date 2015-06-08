@@ -19,6 +19,7 @@ struct Cache_List
     struct Cache_List *prev;		/* chainage arrière */
 
 };
+
 /*! Création d'une liste de blocs */
 struct Cache_List *Cache_List_Create();
 /*! Destruction d'une liste de blocs */
