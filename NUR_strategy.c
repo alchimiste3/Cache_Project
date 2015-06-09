@@ -16,9 +16,24 @@
 #include "time.h"
 
 
-
-
 int nderef;
+
+//Methode qui permet de remettre a zero les bit R de chaque block cache 
+void R_Invalidate(struct Cache *pcache){
+
+    //Si le nombre d'écriture et de lecture a dépasser la limite
+    if(nderef >= pcache->nderef){
+
+        struct Cache_Block_Header *h = pcache->headers;
+        for(int e = 0 ; e < pcache->nblocks ; e++){
+            if((h[e].flags & 4) >> 2){
+                h[e].flags -= 4;
+            }        }
+
+        nderef = 0;
+
+    }
+}
 
 
 /*!
@@ -56,22 +71,23 @@ struct Cache_Block_Header *Strategy_Replace_Block(struct Cache *pcache)
 
     int i = 0;
     struct Cache_Block_Header *tmp = NULL;
-    int addMin = 8;
-    int add = 0;
+    int nMin = 8;
+    int n = 0;
 
+    //On parcourt les block du cache pour trouver celui qui a la plus petit n = 2 x R + M
     while(i < pcache->nblocks){
         pbh = &pcache->headers[i++];
 
-        // add = 2 x R + M
-        add = ((pbh->flags & 4) >> 2)*2 + ((pbh->flags & 2) >> 1);
+        // n = 2 x R + M
+        n = ((pbh->flags & 4) >> 2)*2 + ((pbh->flags & 2) >> 1);
 
-        switch(add){
+        switch(n){
             case 0 : 
                 return pbh;
             break;
             case 1 : case 2 : case 3 :
-                if(addMin > add){
-                    addMin = add;
+                if(nMin > n){
+                    nMin = n;
                     tmp = pbh;
                 }
             break;
@@ -88,22 +104,13 @@ struct Cache_Block_Header *Strategy_Replace_Block(struct Cache *pcache)
  */
 void Strategy_Read(struct Cache *pcache, struct Cache_Block_Header *pbh) 
 {
-
+    //On ajouter une iteration dans le compteur nderef
     nderef++;
 
     //R = 1
     pbh->flags |=  (1 << 2);
 
-    if(nderef >= pcache->nderef){
-
-        struct Cache_Block_Header *h = pcache->headers;
-        for(int e = 0 ; e < pcache->nblocks ; e++){
-            h[e].flags -= 4;
-        }
-
-        nderef = 0;
-
-    }
+    R_Invalidate(pcache);
 }  
 
 /*!
@@ -111,21 +118,14 @@ void Strategy_Read(struct Cache *pcache, struct Cache_Block_Header *pbh)
  */  
 void Strategy_Write(struct Cache *pcache, struct Cache_Block_Header *pbh)
 {
+    //On ajouter une iteration dans le compteur nderef
     nderef++;
 
     //R = 1
     pbh->flags |=  (1 << 2);
 
-    if(nderef >= pcache->nderef){
+    R_Invalidate(pcache);
 
-        struct Cache_Block_Header *h = pcache->headers;
-        for(int e = 0 ; e < pcache->nblocks ; e++){
-            h[e].flags -= 4;
-        }
-
-        nderef = 0;
-
-    }
 } 
 
 char *Strategy_Name()
