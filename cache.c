@@ -35,6 +35,7 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
     pcache->headers = malloc(sizeof(struct Cache_Block_Header) * nblocks);
     pcache->pfree = Get_Free_Block(pcache);
 
+    return pcache;
 }
 
 //! Fermeture (destruction) du cache.
@@ -79,12 +80,69 @@ Cache_Error Cache_Invalidate(struct Cache *pcache){
     Strategy_Invalidate(pcache);
 }
 
+
 //! Lecture  (à travers le cache).
-Cache_Error Cache_Read(struct Cache *pcache, int irfile, void *precord);
+/*
+Lecture à travers le cache de l’enregistrement d’indice irfile dans
+le fichier. Le paramètre precord doit pointer sur un buffer fourni par l’application et
+au moins de taille recordsz . L’enregistrement sera transféré du cache dans ce buffer
+pour une lecture.*/
+Cache_Error Cache_Read(struct Cache *pcache, int irfile, void *precord) {
+	int ibfile = irfile/(pcache->nrecords);
+	int n = irfile%(pcache->nrecords);
+	struct Cache_Block_Header *headers = pcache->headers;
+	for (int i = 0; i < pcache->nblocks; i++) {
+		if (headers[i]->ibfile == ibfile) {
+			char *d = headers[i].data;
+			d += n*pcache->recordsz;
+			for (int j = 0; j < pcache->recordsz; j++) {
+				*precord= *d;
+				d++; precord++;
+			}
+			return CACHE_OK;
+		}
+	}
+	return CACHE_KO;
+}
 
 //! Écriture (à travers le cache).
-Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord);
+Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord) {
+	int ibfile = irfile/(pcache->nrecords);
+	int n = irfile%(pcache->nrecords);
+	struct Cache_Block_Header *headers = pcache->headers;
+	for (int i = 0; i < pcache->nblocks; i++) {
+		if (headers[i]->ibfile == ibfile) {
+			char *d = headers[i].data;
+			d += n*pcache->recordsz;
+			for (int j = 0; j < pcache->recordsz; j++) {
+				*d = *precord;
+				d++; precord++;
+			}
+			return CACHE_OK;
+		}
+	}
+	return CACHE_KO;
+}
 
 
 //! Résultat de l'instrumentation.
-struct Cache_Instrument *Cache_Get_Instrument(struct Cache *pcache);
+struct Cache_Instrument *Cache_Get_Instrument(struct Cache *pcache) {
+	struct Cache_Instrument pinstrument = (pcache->instrument);
+	pcache->instrument->n_deref = 0;
+	pcache->instrument->n_hits = 0;
+	pcache->instrument->n_reads = 0;
+	pcache->instrument->n_syncs = 0;
+	pcache->instrument->n_writes = 0;
+
+	return *pinstrument;
+}
+
+//! Recherche d'un bloc libre.
+struct Cache_Block_Header *Get_Free_Block(struct Cache *pcache) {
+	struct Cache_Block_Header *ret = pcache->pfree;
+	if (ret != NULL)
+		return ret;
+	ret->flags |= VALID;
+	pcache->pfree = (pcache->pfree)+1;
+	return ret;
+}
