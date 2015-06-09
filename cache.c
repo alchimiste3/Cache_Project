@@ -14,7 +14,7 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
 	pcache->recordsz = recordsz;
 	pcache->blocksz = recordsz*recordsz;
 	pcache->nderef = nderef;
-	pcache->pstrategy = NULL;
+	pcache->pstrategy = Strategy_Create(pache);
 
 
 	//Création du cache_Instrument
@@ -29,12 +29,14 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
 
 
 	pcache->headers = malloc(sizeof(struct Cache_Block_Header) * nblocks);
-	pcache->pfree = Get_Free_Block(pcache);		
+	pcache->pfree = Get_Free_Block(pcache);
 
 }
 
 //! Fermeture (destruction) du cache.
-Cache_Error Cache_Close(struct Cache *pcache);
+Cache_Error Cache_Close(struct Cache *pcache){
+
+}
 
 //! Synchronisation du cache.
 Cache_Error Cache_Sync(struct Cache *pcache);
