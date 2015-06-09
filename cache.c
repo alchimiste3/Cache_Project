@@ -14,16 +14,16 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
 	pcache->recordsz = recordsz;
 	pcache->blocksz = recordsz*recordsz;
 	pcache->nderef = nderef;
-	pcache->pstrategy = Strategy_Create(pache);
+	pcache->pstrategy = Strategy_Create(pcache);
 
 
 	//Création du cache_Instrument
-	struct Cache_Instrument *instrument = malloc(sizeof(struct Cache_Instrument));
-	instrument->n_reads = 0;
-	instrument->n_writes = 0;
-	instrument->n_hits = 0;
-	instrument->n_syncs = 0;
-	instrument->n_deref = 0;
+	struct Cache_Instrument instrument;
+	instrument.n_reads = 0;
+	instrument.n_writes = 0;
+	instrument.n_hits = 0;
+	instrument.n_syncs = 0;
+	instrument.n_deref = 0;
 
 	pcache->instrument = instrument;
 
