@@ -1,14 +1,42 @@
 #include "cache.h"
 #include "low_cache.h"
-
-#include <stddef.h>	
+#include <stddef.h> 
 
 //! Création du cache.
 struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
-                           size_t recordsz, unsigned nderef);
+                           size_t recordsz, unsigned nderef){
+    
+    struct Cache *pcache = malloc(sizeof(struct Cache));
+    pcache->file = fic;
+    pcache->fp = fopen(fic, "r+");
+    pcache->nblocks = nblocks;
+    pcache->nrecords = nrecords;
+    pcache->recordsz = recordsz;
+    pcache->blocksz = recordsz*recordsz;
+    pcache->nderef = nderef;
+    pcache->pstrategy = Strategy_Create(pcache);
+
+
+    //Création du cache_Instrument
+    struct Cache_Instrument instrument;
+    instrument.n_reads = 0;
+    instrument.n_writes = 0;
+    instrument.n_hits = 0;
+    instrument.n_syncs = 0;
+    instrument.n_deref = 0;
+
+    pcache->instrument = instrument;
+
+
+    pcache->headers = malloc(sizeof(struct Cache_Block_Header) * nblocks);
+    pcache->pfree = Get_Free_Block(pcache);
+
+}
 
 //! Fermeture (destruction) du cache.
-Cache_Error Cache_Close(struct Cache *pcache);
+Cache_Error Cache_Close(struct Cache *pcache){
+
+}
 
 //! Synchronisation du cache.
 Cache_Error Cache_Sync(struct Cache *pcache);
@@ -22,27 +50,6 @@ Cache_Error Cache_Read(struct Cache *pcache, int irfile, void *precord);
 //! Écriture (à travers le cache).
 Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord);
 
-//! Instrumentation du cache.
-/*!
- * \ingroup cache_interface
- */
-/* struct Cache_Instrument
-{
-    unsigned n_reads; 	//!< Nombre de lectures.
-    unsigned n_writes;	//!< Nombre d'écritures.
-    unsigned n_hits;	//!< Nombre de fois où l'élément était déjà dans le cache.
-    unsigned n_syncs;	//<! Nombre d'appels à Cache_Sync().
-    unsigned n_deref;	//!< Nombre de déréférençage (stratégie NUR).
-}; */
 
 //! Résultat de l'instrumentation.
 struct Cache_Instrument *Cache_Get_Instrument(struct Cache *pcache);
-
-//! Recherche d'un bloc libre.
-struct Cache_Block_Header *Get_Free_Block(struct Cache *pcache) {
-	struct Cache_Block_Header *ret = pcache->pfree;
-	pcache->pfree = (pcache->pfree)+1;
-	return ret;
-
-	//bougement de flag ?
-}
