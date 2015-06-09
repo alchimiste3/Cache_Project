@@ -1,6 +1,10 @@
 #include "cache.h"
 #include "low_cache.h"
 #include <stddef.h> 
+#include <stdio.h>
+#include <unistd.h>
+
+extern int fileno(FILE *stream);
 
 //! Création du cache.
 struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
@@ -39,10 +43,41 @@ Cache_Error Cache_Close(struct Cache *pcache){
 }
 
 //! Synchronisation du cache.
-Cache_Error Cache_Sync(struct Cache *pcache);
+Cache_Error Cache_Sync(struct Cache *pcache){
+
+    //On transforme le FILE * en fd pour écrire dessus
+    int fd = fileno(pcache->fp);
+
+    struct Cache_Block_Header *headers = pcache->headers;
+
+    for(int i = 0 ; i < pcache->nblocks ; i++){
+        if((headers[i].flags & MODIF) >> 1){
+
+            //On récuper la valeur du block
+            char * data = headers[i].data;
+
+            //On déplace le file descriptor sur le block correspondant dans le fichier
+            lseek(fd,headers[i].ibfile*pcache->blocksz, SEEK_SET);
+
+            //On écrie data sur le fichier 
+            write(fd,data,pcache->blocksz);
+        }
+    }
+
+}
 
 //! Invalidation du cache.
-Cache_Error Cache_Invalidate(struct Cache *pcache);
+Cache_Error Cache_Invalidate(struct Cache *pcache){
+    struct Cache_Block_Header *headers = pcache->headers;
+
+    for(int i = 0 ; i < pcache->nblocks ; i++){
+        if(headers[i].flags & VALID){
+            headers[i].flags -= VALID;
+        }
+    }
+
+    Strategy_Invalidate(pcache);
+}
 
 //! Lecture  (à travers le cache).
 Cache_Error Cache_Read(struct Cache *pcache, int irfile, void *precord);
