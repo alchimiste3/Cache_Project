@@ -2,13 +2,21 @@
 
 #include <stdio.h>
 #include "cache_list.h"
-#include <stddef.h>	
+#include <stddef.h>
+#include "cache_list.h"
 
 //Test de chaque méthode
 
+void print_debut_test(const char * methode);
+void print_fin_test(const char * methode);
+
 /*! Création d'une liste de blocs */
 void test_Cache_List_Create(){
-    
+    print_debut_test("test_Cache_List_Create");
+    struct Cache_List * cache_list = Cache_List_Create();
+    printf("L'adresse de la structure cache creer %p", cache_list);
+
+    print_fin_test("test_Cache_List_Create");
 }
 
 /*! Destruction d'une liste de blocs */
@@ -64,8 +72,17 @@ void test_Cache_List_Move_To_Begin(struct Cache_List *list,
     
 }
 
-int main(){
+void print_debut_test(const char * methode){
+    printf("***************** Test de la methode %s ******************\n", methode);
+}
+
+void print_fin_test(const char * methode){
+    printf("*****************FIN TEST %s******************\n", methode);
+}
+
+int main(int argc, char * argv[]){
     //Lancer un test
+    test_Cache_List_Create();
 }
 
 #endif

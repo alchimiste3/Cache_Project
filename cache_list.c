@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <stdio.h>
 #include "cache_list.h"
 #include <stddef.h>	
 
@@ -43,9 +45,9 @@ void Cache_List_Append(struct Cache_List *list, struct Cache_Block_Header *pbh){
 	struct Cache_List *newElem = malloc(sizeof(struct Cache_List));
 	newElem->pheader = pbh;
 	newElem->next = NULL;
-	newElem->prev = list;
+	newElem->prev = current;
 
-	list->next = newElem;	//Insertion de l'élément à la fin de la liste
+	current->next = newElem;	//Insertion de l'élément à la fin de la liste
 
 }
 
@@ -75,6 +77,8 @@ struct Cache_Block_Header *Cache_List_Remove_First(struct Cache_List *list){
 	}
 	(current->next)->prev = NULL;
 	free(current);
+    //TODO return
+    return NULL;
 }
 
 /*! Retrait du dernier élément 
@@ -132,12 +136,12 @@ struct Cache_Block_Header * Cache_List_Remove(struct Cache_List *list, struct Ca
             return liste_a_parcourir->pheader;
         }
     }
-    return liste_a_parcourir->pheader;s
+    return liste_a_parcourir->pheader;
 }
 
 /*! Remise en l'état de liste vide */
 void Cache_List_Clear(struct Cache_List *list){
-    list->pheaders = NULL;
+    list->pheader = NULL;
     list->prev = NULL;
     list->next = NULL;
 }
