@@ -28,7 +28,8 @@ void R_Invalidate(struct Cache *pcache){
         for(int e = 0 ; e < pcache->nblocks ; e++){
             if((h[e].flags & 4) >> 2){
                 h[e].flags -= 4;
-            }        }
+            }        
+        }
 
         nderef = 0;
 
@@ -56,6 +57,7 @@ void Strategy_Close(struct Cache *pcache)
  */
 void Strategy_Invalidate(struct Cache *pcache)
 { 
+    nderef = pcache->nderef;
     R_Invalidate(pcache);
 }
 
