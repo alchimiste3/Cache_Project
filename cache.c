@@ -40,7 +40,8 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
 
 //! Fermeture (destruction) du cache.
 Cache_Error Cache_Close(struct Cache *pcache){
-
+	free(pcache->headers);
+	free(pcache);
 }
 
 //! Synchronisation du cache.
@@ -51,7 +52,8 @@ Cache_Error Cache_Sync(struct Cache *pcache){
 
     struct Cache_Block_Header *headers = pcache->headers;
 
-    for(int i = 0 ; i < pcache->nblocks ; i++){
+    int i;
+    for(i = 0 ; i < pcache->nblocks ; i++){
         if((headers[i].flags & MODIF) >> 1){
 
             //On récuper la valeur du block
@@ -71,7 +73,8 @@ Cache_Error Cache_Sync(struct Cache *pcache){
 Cache_Error Cache_Invalidate(struct Cache *pcache){
     struct Cache_Block_Header *headers = pcache->headers;
 
-    for(int i = 0 ; i < pcache->nblocks ; i++){
+    int i;
+    for(i = 0 ; i < pcache->nblocks ; i++){
         if(headers[i].flags & VALID){
             headers[i].flags -= VALID;
         }
@@ -90,18 +93,22 @@ pour une lecture.*/
 Cache_Error Cache_Read(struct Cache *pcache, int irfile, void *precord) {
 	int ibfile = irfile/(pcache->nrecords);
 	int n = irfile%(pcache->nrecords);
+	char * copiePrecord = malloc(pcache->recordsz * sizeof(char));
 	struct Cache_Block_Header *headers = pcache->headers;
-	for (int i = 0; i < pcache->nblocks; i++) {
-		if (headers[i]->ibfile == ibfile) {
+	int i;
+	for (i = 0; i < pcache->nblocks; i++) {
+		if (headers[i].ibfile == ibfile) {
 			char *d = headers[i].data;
 			d += n*pcache->recordsz;
-			for (int j = 0; j < pcache->recordsz; j++) {
-				*precord= *d;
-				d++; precord++;
+			int j;
+			for (j = 0; j < pcache->recordsz; j++) {
+				copiePrecord[j]= d[j];
 			}
+			precord = (void *) copiePrecord;
 			return CACHE_OK;
 		}
 	}
+	
 	return CACHE_KO;
 }
 
@@ -109,14 +116,16 @@ Cache_Error Cache_Read(struct Cache *pcache, int irfile, void *precord) {
 Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord) {
 	int ibfile = irfile/(pcache->nrecords);
 	int n = irfile%(pcache->nrecords);
+	char * copiePrecord = (char *) precord;
 	struct Cache_Block_Header *headers = pcache->headers;
-	for (int i = 0; i < pcache->nblocks; i++) {
-		if (headers[i]->ibfile == ibfile) {
+	int i;
+	for (i = 0; i < pcache->nblocks; i++) {
+		if (headers[i].ibfile == ibfile) {
 			char *d = headers[i].data;
 			d += n*pcache->recordsz;
-			for (int j = 0; j < pcache->recordsz; j++) {
-				*d = *precord;
-				d++; precord++;
+			int j;
+			for (j = 0; j < pcache->recordsz; j++) {
+				d[j] = copiePrecord[j];
 			}
 			return CACHE_OK;
 		}
@@ -127,14 +136,14 @@ Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord) {
 
 //! Résultat de l'instrumentation.
 struct Cache_Instrument *Cache_Get_Instrument(struct Cache *pcache) {
-	struct Cache_Instrument pinstrument = (pcache->instrument);
-	pcache->instrument->n_deref = 0;
-	pcache->instrument->n_hits = 0;
-	pcache->instrument->n_reads = 0;
-	pcache->instrument->n_syncs = 0;
-	pcache->instrument->n_writes = 0;
+	struct Cache_Instrument pinstrument = pcache->instrument;
+	(pcache->instrument).n_deref = 0;
+	(pcache->instrument).n_hits = 0;
+	(pcache->instrument).n_reads = 0;
+	(pcache->instrument).n_syncs = 0;
+	(pcache->instrument).n_writes = 0;
 
-	return *pinstrument;
+	return &pinstrument;
 }
 
 //! Recherche d'un bloc libre.
