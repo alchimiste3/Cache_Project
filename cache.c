@@ -1,4 +1,6 @@
 #include "cache.h"
+#include "low_cache.h"
+
 #include <stddef.h>	
 
 //! Création du cache.
@@ -24,14 +26,23 @@ Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord);
 /*!
  * \ingroup cache_interface
  */
-struct Cache_Instrument
+/* struct Cache_Instrument
 {
     unsigned n_reads; 	//!< Nombre de lectures.
     unsigned n_writes;	//!< Nombre d'écritures.
     unsigned n_hits;	//!< Nombre de fois où l'élément était déjà dans le cache.
     unsigned n_syncs;	//<! Nombre d'appels à Cache_Sync().
     unsigned n_deref;	//!< Nombre de déréférençage (stratégie NUR).
-};
+}; */
 
 //! Résultat de l'instrumentation.
 struct Cache_Instrument *Cache_Get_Instrument(struct Cache *pcache);
+
+//! Recherche d'un bloc libre.
+struct Cache_Block_Header *Get_Free_Block(struct Cache *pcache) {
+	struct Cache_Block_Header *ret = pcache->pfree;
+	pcache->pfree = (pcache->pfree)+1;
+	return ret;
+
+	//bougement de flag ?
+}
