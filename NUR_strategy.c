@@ -56,6 +56,7 @@ void Strategy_Close(struct Cache *pcache)
  */
 void Strategy_Invalidate(struct Cache *pcache)
 { 
+    R_Invalidate(pcache);
 }
 
 /*! 
