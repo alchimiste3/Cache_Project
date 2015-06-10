@@ -8,6 +8,9 @@
 
 extern int fileno(FILE *stream);
 
+
+int compteurAccess;
+
 //! Création du cache.
 struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
                            size_t recordsz, unsigned nderef){
@@ -115,6 +118,34 @@ Cache_Error Cache_Invalidate(struct Cache *pcache){
     return CACHE_OK;
 }
 
+
+//
+void Read_Fichier(struct Cache *pcache, struct Cache_Block_Header * tmp, int irfile){
+    
+    int ibfile = irfile / pcache->nrecords;
+
+    if(fseek(pcache->fp, DADDR(pcache, ibfile), SEEK_SET) != 0)
+            return CACHE_KO;
+
+    fgets(tmp->data, pcache->blocksz, pcache->fp);
+
+
+}
+
+//
+void Write_Fichier(struct Cache *pcache, struct Cache_Block_Header * tmp){
+    
+    if((tmp->flags & MODIF) > 0){
+        if(fseek(pcache->fp, DADDR(pcache, tmp->ibfile), SEEK_SET) != 0)
+            return CACHE_KO;
+
+        if(fputs(tmp->data, pcache->fp) == EOF)
+            return CACHE_KO;
+
+    }
+}
+
+
 //! Lecture  (à travers le cache).
 /*
 Lecture à travers le cache de l’enregistrement d’indice irfile dans
@@ -129,10 +160,12 @@ Cache_Error Cache_Read(struct Cache *pcache, int irfile, void *precord) {
     int n = irfile%(pcache->nrecords);
     printf("num enregistrement = %d\n", n);
 
+    char *copiePrecord = (char*)precord; 
+
     struct Cache_Block_Header *headers = pcache->headers;
     int i;
 
-    struct Cache_Block_Header * tmp = NULL;
+    struct Cache_Block_Header * tmp;
 
     int trouver = 0;
 
@@ -141,6 +174,7 @@ Cache_Error Cache_Read(struct Cache *pcache, int irfile, void *precord) {
         if (headers[i].ibfile == ibfile) {
             tmp = &headers[i];
             printf("trouver dans cache avec ibcache = %d\n",i);
+            pcache->instrument.n_hits++;
             trouver = 1;
             break;
         }
@@ -151,18 +185,28 @@ Cache_Error Cache_Read(struct Cache *pcache, int irfile, void *precord) {
         printf("creation nouveau block cache");
 
         tmp = Strategy_Replace_Block(pcache);
+
+
+        Write_Fichier(pcache,tmp);
+
+        Read_Fichier(pcache,tmp, irfile);
+
         tmp->ibfile = ibfile;
 
-        Cache_Sync(pcache);
-
-        printf("tmp->ibcache = %ld\n", tmp->ibcache);
+        tmp->flags |= VALID;
     }
 
+    printf("copiePrecord = %s\n", copiePrecord);
 
-    memcpy(precord, &(tmp->data[n*pcache->recordsz]), pcache->recordsz);
+    if(snprintf(copiePrecord, pcache->recordsz, "%s", ADDR(pcache, irfile, tmp)) < 0)
+        return CACHE_KO;
 
+    pcache->instrument.n_reads++;
+    
+    if(++compteurAccess == NSYNC)
+        Cache_Sync(pcache);
 
-    //printf("data.i = %d\n",(*(struct Any *)tmp->data).x);
+    Strategy_Read(pcache, tmp);
     
     return CACHE_OK;
 
@@ -177,6 +221,8 @@ Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord) {
     int n = irfile%(pcache->nrecords);
     printf("num enregistrement = %d\n", n);
 
+    char *copiePrecord = (char*)precord; 
+
     struct Cache_Block_Header *headers = pcache->headers;
     int i;
 
@@ -190,6 +236,7 @@ Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord) {
             tmp = &headers[i];
             printf("trouver dans cache avec headers[%d].ibfile = %d et ibcache = %d\n",i, headers[i].ibfile, i);
             trouver = 1;
+            pcache->instrument.n_hits++;
             break;
         }
     }
@@ -200,20 +247,28 @@ Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord) {
 
         tmp = Strategy_Replace_Block(pcache);
 
+        Write_Fichier(pcache,tmp);
+
+        Read_Fichier(pcache,tmp, irfile);
+
         tmp->ibfile = ibfile;
 
-        printf("tmp->ibcache = %ld\n", tmp->ibcache);
-        printf("data = %s\n", tmp->data);
-
+        tmp->flags |= VALID;
     }
 
 
-    memcpy(&(tmp->data[n*pcache->recordsz - 1]), precord,  pcache->recordsz);
+    if(snprintf(ADDR(pcache, irfile, tmp), pcache->recordsz, "%s", copiePrecord) < 0)
+        return CACHE_KO;
 
-    printf("zzeefzef\n");
+    tmp->flags |= MODIF;
 
-    //printf("data.i = %d\n",(*(struct Any *)tmp->data).x);
+    if(++compteurAccess == NSYNC)
+        Cache_Sync(pcache);
+
+    Strategy_Write(pcache, tmp);
     
+    pcache->instrument.n_writes++;
+
     return CACHE_OK;
 
 }
