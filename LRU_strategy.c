@@ -53,6 +53,7 @@ void Strategy_Close(struct Cache *pcache)
  */
 void Strategy_Invalidate(struct Cache *pcache)
 {
+	Cache_List_Clear(pcl);
 }
 
 /*!
