@@ -32,11 +32,12 @@ void *Strategy_Create(struct Cache *pcache)
 
     struct Cache_Block_Header *h = pcache->headers;
 
-    for(int i = 0 ; i < pcache->nblocks ; i++){
+    int i;
+    for(i = 0 ; i < pcache->nblocks ; i++){
         Cache_List_Prepend(pcl,&h[i]);
     }
 
-	return pcl;
+	return (void *) pcl;
 }
 
 /*!

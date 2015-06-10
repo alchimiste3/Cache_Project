@@ -43,6 +43,7 @@ void R_Invalidate(struct Cache *pcache){
 void *Strategy_Create(struct Cache *pcache) 
 {
     nderef = 0;
+    return (void *) 0;
 }
 
 /*!

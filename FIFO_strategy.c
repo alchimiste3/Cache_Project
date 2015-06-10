@@ -29,6 +29,7 @@ struct Cache_List * list;
 void *Strategy_Create(struct Cache *pcache) 
 {
     list = Cache_List_Create();
+    return (void *) list;
 }
 
 /*!

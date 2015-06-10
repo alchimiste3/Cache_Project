@@ -1,8 +1,9 @@
-<<<<<<< HEAD
-LRU_strategy.o: LRU_strategy.c strategy.h low_cache.h cache.h \
-=======
+cache.o: cache.c cache.h low_cache.h
 FIFO_strategy.o: FIFO_strategy.c strategy.h low_cache.h cache.h \
->>>>>>> ba5662a3c7a090408fc9ca2b42cc7f648cab9bae
  cache_list.h random.h
+low_cache.o: low_cache.c low_cache.h cache.h
+LRU_strategy.o: LRU_strategy.c strategy.h low_cache.h cache.h \
+ cache_list.h random.h
+NUR_strategy.o: NUR_strategy.c strategy.h low_cache.h cache.h random.h
 RAND_strategy.o: RAND_strategy.c strategy.h low_cache.h cache.h random.h
 tst_Cache.o: tst_Cache.c cache.h strategy.h random.h
