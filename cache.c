@@ -1,5 +1,6 @@
 #include "cache.h"
 #include "low_cache.h"
+#include "strategy.h"
 #include <stddef.h> 
 #include <stdio.h>
 #include <unistd.h>
@@ -22,7 +23,6 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
     pcache->nderef = nderef;
     pcache->pstrategy = Strategy_Create(pcache);
 
-
     //Création du cache_Instrument
     struct Cache_Instrument instrument;
     instrument.n_reads = 0;
@@ -30,12 +30,11 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
     instrument.n_hits = 0;
     instrument.n_syncs = 0;
     instrument.n_deref = 0;
-
     pcache->instrument = instrument;
 
 
+    //Création du tableau de headers
     pcache->headers = malloc(sizeof(struct Cache_Block_Header) * nblocks);
-
     int i;
     for(i = 0; i<nrecords; i++){
     	pcache->headers[i].flags = 0;
@@ -44,14 +43,31 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
     	pcache->headers[i].data = malloc(sizeof(char)*recordsz);
     }
 
-    pcache->pfree = Get_Free_Block(pcache);
+    pcache->pfree = pcache->headers; //Le premier bloc est libre  puisque le cache vient d'être initialisé.
+
+    // -------------- TEST ----------------
+    // int j = 0;
+    // while(j<nrecords){
+    // 	printf(" -- bloc header %d -- \n", pcache->headers[j].ibcache);
+    // 	printf(" -- data : %s -- \n", pcache->headers[j].data);
+    // 	j++;
+    // }
+
+    // printf(" --- bloc libre : %d --- \n", pcache->pfree->ibcache);
+    // ---------------- TEST ----------------------------
 
     return pcache;
 }
 
 //! Fermeture (destruction) du cache.
 Cache_Error Cache_Close(struct Cache *pcache){
+	int i = 0;
+	for(i = 0; i<pcache->nrecords; i++){
+		free(pcache->headers[i].data);
+	}
+
 	free(pcache->headers);
+	free(pcache->file);
 	free(pcache);
 	return CACHE_OK;
 }
