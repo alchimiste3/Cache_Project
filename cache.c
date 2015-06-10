@@ -17,7 +17,7 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
     pcache->nblocks = nblocks;
     pcache->nrecords = nrecords;
     pcache->recordsz = recordsz;
-    pcache->blocksz = recordsz*recordsz;
+    pcache->blocksz = nrecords*recordsz;
     pcache->nderef = nderef;
     pcache->pstrategy = Strategy_Create(pcache);
 
@@ -34,6 +34,15 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
 
 
     pcache->headers = malloc(sizeof(struct Cache_Block_Header) * nblocks);
+
+    int i;
+    for(i = 0; i<nrecords; i++){
+    	pcache->headers[i]->flags = 0;
+    	pcache->headers[i]->ibfile = 0;
+    	pcache->headers[i]->ibcache = i;
+    	pcache->headers[i]->data = malloc(sizeof(char)*recordsz);
+    }
+
     pcache->pfree = Get_Free_Block(pcache);
 
     return pcache;
