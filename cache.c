@@ -18,7 +18,7 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
     struct Cache *pcache = malloc(sizeof(struct Cache));
     pcache->file = malloc(sizeof(char)*strlen(fic));
     strcpy(pcache->file, fic);
-    pcache->fp = fopen(fic, "r+");
+    pcache->fp = fopen(fic, "wb+");
     pcache->nblocks = nblocks;
     pcache->nrecords = nrecords;
     pcache->recordsz = recordsz;
@@ -40,10 +40,10 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
     pcache->headers = malloc(sizeof(struct Cache_Block_Header) * nblocks);
     int i;
     for(i = 0; i<nblocks; i++){
-    	pcache->headers[i].flags = 0;
+    	pcache->headers[i].flags &= 0x0;
     	pcache->headers[i].ibfile = -1;
     	pcache->headers[i].ibcache = i;
-    	pcache->headers[i].data = malloc(sizeof(char)*recordsz);
+    	pcache->headers[i].data = malloc(sizeof(char) * recordsz * nrecords);
     }
 
     pcache->pfree = pcache->headers; //Le premier bloc est libre  puisque le cache vient d'être initialisé.
@@ -64,14 +64,18 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
 
 //! Fermeture (destruction) du cache.
 Cache_Error Cache_Close(struct Cache *pcache){
-	// int i = 0;
-	// for(i = 0; i<pcache->nblocks; i++){
-	// 	free(pcache->headers[i].data);
-	// }
+	if(Cache_Sync(pcache) == CACHE_KO) return CACHE_KO;
+	if(fclose(pcache->fp) != 0) return CACHE_KO;
+	Strategy_Close(pcache);
+ 	
+	int i;
+	for(i = 0; i<pcache->nblocks; i++){
+		//free(pcache->headers[i].data);
+	}
 
-	// free(pcache->headers);
-	// free(pcache->file);
-	// free(pcache);
+	//free(pcache->headers);
+	free(pcache->file);
+	free(pcache);
 	return CACHE_OK;
 }
 
