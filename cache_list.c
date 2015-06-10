@@ -35,6 +35,8 @@ struct Cache_List *Cache_List_Create(){
 
     printf("DEBUG Function [Cache_List_Delete] : dernier free { current = %p AND current->pheader = %p }\n", current, current->pheader);
     free(current->pheader);
+    current->next = NULL;
+    current->prev = NULL;
  	free(current);	//On supprime le dernier élèment de la liste
  }
 
@@ -96,13 +98,36 @@ void Cache_List_Prepend(struct Cache_List *list, struct Cache_Block_Header *pbh)
 struct Cache_Block_Header *Cache_List_Remove_First(struct Cache_List *list){
 	//On se positionne au début de la liste
 	struct Cache_List *current = list;
+    printf("\tDEBUG Function[Cache_List_Remove_FIrst] : { list = %p }\n", current);
 	while(current->prev){
 		current = current->prev;
 	}
-	(current->next)->prev = NULL;
-	free(current);
-    //TODO return
-    return NULL;
+
+    printf("\tDEBUG Function[Cache_List_Remove_FIrst] : { current = %p }\n", current);
+    if(current == list){
+        if(!current->next){
+            if(current->pheader) {
+                printf("\t\tDEBUG Function[Cache_List_Remove_FIrst] : (current = %p) == (list = %p) AND (current->next = %p) == NULL. Will free current->pheader = %p \n",
+                       current, list, current->next, current->pheader);
+                free(current->pheader); //La list est maintenant vide, pas de next, pas de prev
+                current->pheader = NULL;
+                current->next = NULL;
+                current->prev = NULL;
+                return current;
+            }
+            else{
+                printf("\t\tLa liste cache_list donnee est vide!\n");
+                return list; //Liste vide
+            }
+        }
+    }
+    current = current->next;
+    printf("\tDEBUG Function[Cache_List_Remove_FIrst] : At beginning { current = %p } will free current->prev->pheader = %p AND current->prev = %p\n", current, current->prev->pheader, current->prev);
+    free(current->prev->pheader);
+    free(current->prev);
+    printf("\tDEBUG Function[Cache_List_Remove_FIrst] : After free current = %p\n", current);
+    current->prev = NULL;
+    return current;
 }
 
 /*! Retrait du dernier élément 
@@ -110,35 +135,38 @@ struct Cache_Block_Header *Cache_List_Remove_First(struct Cache_List *list){
  * \Retourne 
  */
 struct Cache_Block_Header *Cache_List_Remove_Last(struct Cache_List *list){
-    if(Cache_List_Is_Empty(list)){
-        perror("La liste cache_list donnee est vide!");
-        exit(1);
+    //On se positionne à la fin de la liste
+    struct Cache_List *current = list;
+    printf("\tDEBUG Function[Cache_List_Remove_Last] : { list = %p }\n", current);
+    while(current->next){
+        current = current->next;
     }
-    
-    struct Cache_Block_Header * header;
-    
-    struct Cache_List * last = NULL;    //Le dernier élément de la liste, s'il existe
-    
-    struct Cache_List * list_pour_parcours = list;
-    
-    //Récupère le dernier de la liste
-    while(list_pour_parcours->next != NULL){
-        last = list_pour_parcours->next;
-        list_pour_parcours = list_pour_parcours->next;
+
+    printf("\tDEBUG Function[Cache_List_Remove_Last] : { current = %p }\n", current);
+    if(current == list){
+        if(!current->prev){
+            if(current->pheader) {
+                printf("\t\tDEBUG Function[Cache_List_Remove_Last] : (current = %p) == (list = %p) AND (current->prev = %p) == NULL. Will free current->pheader = %p \n",
+                       current, list, current->prev, current->pheader);
+                free(current->pheader); //La list est maintenant vide, pas de next, pas de prev
+                current->pheader = NULL;
+                current->next = NULL;
+                current->prev = NULL;
+                return current;
+            }
+            else{
+                printf("\t\tLa liste cache_list donnee est vide!\n");
+                return list; //Liste vide
+            }
+        }
     }
-    
-    if(last == NULL){
-        //On avait une liste d'un élément
-        header = list->pheader;
-        Cache_List_Clear(list);
-        return header;
-    }
-    
-    //Re-structuration de la liste
-    struct Cache_List * new_Last = last->prev;
-    new_Last->next = NULL;
-    
-    return last->pheader;
+    current = current->prev;
+    printf("\tDEBUG Function[Cache_List_Remove_Last] : At beginning { current = %p } will free current->next->pheader = %p AND current->next = %p\n", current, current->next->pheader, current->next);
+    free(current->next->pheader);
+    free(current->next);
+    printf("\tDEBUG Function[Cache_List_Remove_Last] : After free current = %p\n", current);
+    current->next = NULL;
+    return current;
 }
 
 /*! Retrait d'un élément quelconque */
