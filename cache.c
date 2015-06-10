@@ -37,10 +37,10 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
 
     int i;
     for(i = 0; i<nrecords; i++){
-    	pcache->headers[i]->flags = 0;
-    	pcache->headers[i]->ibfile = 0;
-    	pcache->headers[i]->ibcache = i;
-    	pcache->headers[i]->data = malloc(sizeof(char)*recordsz);
+    	pcache->headers[i].flags = 0;
+    	pcache->headers[i].ibfile = 0;
+    	pcache->headers[i].ibcache = i;
+    	pcache->headers[i].data = malloc(sizeof(char)*recordsz);
     }
 
     pcache->pfree = Get_Free_Block(pcache);
