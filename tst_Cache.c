@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
 	Error("Cache_Init");
     Print_Parameters();
 
-    Cache_Close(The_Cache);
+    //Cache_Close(The_Cache);
 
     /* Exécution des tests */
     for (i = 0; i < NTESTS; ++i)

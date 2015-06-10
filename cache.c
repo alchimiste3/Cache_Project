@@ -36,9 +36,9 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
     //Création du tableau de headers
     pcache->headers = malloc(sizeof(struct Cache_Block_Header) * nblocks);
     int i;
-    for(i = 0; i<nrecords; i++){
+    for(i = 0; i<nblocks; i++){
     	pcache->headers[i].flags = 0;
-    	pcache->headers[i].ibfile = 0;
+    	pcache->headers[i].ibfile = -1;
     	pcache->headers[i].ibcache = i;
     	pcache->headers[i].data = malloc(sizeof(char)*recordsz);
     }
@@ -61,14 +61,14 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
 
 //! Fermeture (destruction) du cache.
 Cache_Error Cache_Close(struct Cache *pcache){
-	int i = 0;
-	for(i = 0; i<pcache->nrecords; i++){
-		free(pcache->headers[i].data);
-	}
+	// int i = 0;
+	// for(i = 0; i<pcache->nblocks; i++){
+	// 	free(pcache->headers[i].data);
+	// }
 
-	free(pcache->headers);
-	free(pcache->file);
-	free(pcache);
+	// free(pcache->headers);
+	// free(pcache->file);
+	// free(pcache);
 	return CACHE_OK;
 }
 
@@ -110,9 +110,10 @@ Cache_Error Cache_Invalidate(struct Cache *pcache){
 
     Strategy_Invalidate(pcache);
 
+    pcache->pfree = pcache->headers;
+
     return CACHE_OK;
 }
-
 
 //! Lecture  (à travers le cache).
 /*
@@ -121,51 +122,100 @@ le fichier. Le paramètre precord doit pointer sur un buffer fourni par l’appl
 au moins de taille recordsz . L’enregistrement sera transféré du cache dans ce buffer
 pour une lecture.*/
 Cache_Error Cache_Read(struct Cache *pcache, int irfile, void *precord) {
-	int ibfile = irfile/(pcache->nrecords);
-	int n = irfile%(pcache->nrecords);
-	char * copiePrecord = malloc(pcache->recordsz * sizeof(char));
-	struct Cache_Block_Header *headers = pcache->headers;
-	int i;
-	for (i = 0; i < pcache->nblocks; i++) {
-		if (headers[i].ibfile == ibfile) {
-			char *d = headers[i].data;
-			d += n*pcache->recordsz;
-			int j;
-			for (j = 0; j < pcache->recordsz; j++) {
-				copiePrecord[j]= d[j];
-			}
-			precord = (void *) copiePrecord;
-			return CACHE_OK;
-		}
-	}
-	
-	return CACHE_KO;
+    printf("\nRead :\n");
+    printf("irfile = %d\n", irfile);
+    int ibfile = irfile/(pcache->nrecords);
+    printf("ibfile = %d\n", ibfile);
+    int n = irfile%(pcache->nrecords);
+    printf("num enregistrement = %d\n", n);
+
+    struct Cache_Block_Header *headers = pcache->headers;
+    int i;
+
+    struct Cache_Block_Header * tmp = NULL;
+
+    int trouver = 0;
+
+    for (i = 0; i < pcache->nblocks; i++) {
+        //printf("headers[i].ibfile = %d\n", headers[i].ibfile);
+        if (headers[i].ibfile == ibfile) {
+            tmp = &headers[i];
+            printf("trouver dans cache avec ibcache = %d\n",i);
+            trouver = 1;
+            break;
+        }
+    }
+
+
+    if(trouver == 0){
+        printf("creation nouveau block cache");
+
+        tmp = Strategy_Replace_Block(pcache);
+        tmp->ibfile = ibfile;
+
+        Cache_Sync(pcache);
+
+        printf("tmp->ibcache = %ld\n", tmp->ibcache);
+    }
+
+
+    memcpy(precord, &(tmp->data[n*pcache->recordsz]), pcache->recordsz);
+
+
+    //printf("data.i = %d\n",(*(struct Any *)tmp->data).x);
+    
+    return CACHE_OK;
+
 }
 
 //! Écriture (à travers le cache).
 Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord) {
-	int ibfile = irfile/(pcache->nrecords);
-	int n = irfile%(pcache->nrecords);
-	char * copiePrecord = (char *) precord;
-	struct Cache_Block_Header *headers = pcache->headers;
-	int i;
-	for (i = 0; i < pcache->nblocks; i++) {
-		if (headers[i].ibfile == ibfile) {
-			char *d = headers[i].data;
-			d += n*pcache->recordsz;
-			int j;
-            //printf("precord.i : %d\n", (struct*)precord);
-            printf("copiePrecord : %s\n", copiePrecord);
-            printf("taille copiePrecord : %zu\n", strlen(copiePrecord));
+    printf("\nWrite :\n");
+    printf("irfile = %d\n", irfile);
+    int ibfile = irfile/(pcache->nrecords);
+    printf("ibfile = %d\n", ibfile);
+    int n = irfile%(pcache->nrecords);
+    printf("num enregistrement = %d\n", n);
 
-            //strcpy(d, copiePrecord);
-			for (j = 0; j < pcache->recordsz; j++) {
-				d[j] = copiePrecord[j];
-			}
-			return CACHE_OK;
-		}
-	}
-	return CACHE_KO;
+    struct Cache_Block_Header *headers = pcache->headers;
+    int i;
+
+    struct Cache_Block_Header * tmp = NULL;
+
+    int trouver = 0;
+
+    for (i = 0; i < pcache->nblocks; i++) {
+        //printf("headers[i].ibfile = %d\n", headers[i].ibfile);
+        if (headers[i].ibfile == ibfile) {
+            tmp = &headers[i];
+            printf("trouver dans cache avec headers[%d].ibfile = %d et ibcache = %d\n",i, headers[i].ibfile, i);
+            trouver = 1;
+            break;
+        }
+    }
+
+
+    if(trouver == 0){
+        printf("creation nouveau block cache");
+
+        tmp = Strategy_Replace_Block(pcache);
+
+        tmp->ibfile = ibfile;
+
+        printf("tmp->ibcache = %ld\n", tmp->ibcache);
+        printf("data = %s\n", tmp->data);
+
+    }
+
+
+    memcpy(&(tmp->data[n*pcache->recordsz - 1]), precord,  pcache->recordsz);
+
+    printf("zzeefzef\n");
+
+    //printf("data.i = %d\n",(*(struct Any *)tmp->data).x);
+    
+    return CACHE_OK;
+
 }
 
 
