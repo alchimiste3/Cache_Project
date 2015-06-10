@@ -12,7 +12,8 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
                            size_t recordsz, unsigned nderef){
     
     struct Cache *pcache = malloc(sizeof(struct Cache));
-    pcache->file = fic;
+    pcache->file = malloc(sizeof(char)*strlen(fic));
+    strcpy(pcache->file, fic);
     pcache->fp = fopen(fic, "r+");
     pcache->nblocks = nblocks;
     pcache->nrecords = nrecords;
@@ -52,6 +53,7 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
 Cache_Error Cache_Close(struct Cache *pcache){
 	free(pcache->headers);
 	free(pcache);
+	return CACHE_OK;
 }
 
 //! Synchronisation du cache.
@@ -138,7 +140,7 @@ Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord) {
 			int j;
             //printf("precord.i : %d\n", (struct*)precord);
             printf("copiePrecord : %s\n", copiePrecord);
-            printf("taille copiePrecord : %s\n", strlen(copiePrecord));
+            printf("taille copiePrecord : %zu\n", strlen(copiePrecord));
 
             //strcpy(d, copiePrecord);
 			for (j = 0; j < pcache->recordsz; j++) {
@@ -153,14 +155,16 @@ Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord) {
 
 //! Résultat de l'instrumentation.
 struct Cache_Instrument *Cache_Get_Instrument(struct Cache *pcache) {
-	struct Cache_Instrument pinstrument = pcache->instrument;
+	struct Cache_Instrument *pinstrument = malloc(sizeof(struct Cache_Instrument));
+	memcpy(pinstrument, &(pcache->instrument), sizeof(struct Cache_Instrument));
+	
 	(pcache->instrument).n_deref = 0;
 	(pcache->instrument).n_hits = 0;
 	(pcache->instrument).n_reads = 0;
 	(pcache->instrument).n_syncs = 0;
 	(pcache->instrument).n_writes = 0;
 
-	return &pinstrument;
+	return pinstrument;
 }
 
 
