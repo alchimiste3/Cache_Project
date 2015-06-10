@@ -3,6 +3,7 @@
 #include <stddef.h> 
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 extern int fileno(FILE *stream);
 
@@ -81,6 +82,8 @@ Cache_Error Cache_Invalidate(struct Cache *pcache){
     }
 
     Strategy_Invalidate(pcache);
+
+    return CACHE_OK;
 }
 
 
@@ -124,6 +127,11 @@ Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord) {
 			char *d = headers[i].data;
 			d += n*pcache->recordsz;
 			int j;
+            //printf("precord.i : %d\n", (struct*)precord);
+            printf("copiePrecord : %s\n", copiePrecord);
+            printf("taille copiePrecord : %s\n", strlen(copiePrecord));
+
+            //strcpy(d, copiePrecord);
 			for (j = 0; j < pcache->recordsz; j++) {
 				d[j] = copiePrecord[j];
 			}
@@ -146,12 +154,20 @@ struct Cache_Instrument *Cache_Get_Instrument(struct Cache *pcache) {
 	return &pinstrument;
 }
 
-//! Recherche d'un bloc libre.
-struct Cache_Block_Header *Get_Free_Block(struct Cache *pcache) {
-	struct Cache_Block_Header *ret = pcache->pfree;
-	if (ret != NULL)
-		return ret;
-	ret->flags |= VALID;
-	pcache->pfree = (pcache->pfree)+1;
-	return ret;
-}
+
+
+
+// void afficherBlockCache(struct Cache *pcache, int n){
+//     printf("Block numero %d\n", n);
+
+//     printf("%s\n", pcache->headers[n].data);
+    
+
+// }
+
+
+// int main(int argc, char const *argv[])
+// {
+//     /* code */
+//     return 0;
+// }
