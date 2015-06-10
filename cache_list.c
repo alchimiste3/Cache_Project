@@ -25,47 +25,71 @@ struct Cache_List *Cache_List_Create(){
  		current = current->next;
  	}
 
- 	//on part de la fin de la liste et on supprime tout
- 	while(current->prev){	
+ 	//on part de la fin de la liste et on supprime tout tant qu'il existe un prev
+ 	while(current->prev){
  		current = current->prev;
+        printf("DEBUG Function [Cache_List_Delete] : will free { current->next = %p AND current->next->header = %p } \n", current->next, current->next->pheader);
+        free(current->next->pheader);
  		free(current->next);
  	}
 
+    printf("DEBUG Function [Cache_List_Delete] : dernier free { current = %p AND current->pheader = %p }\n", current, current->pheader);
+    free(current->pheader);
  	free(current);	//On supprime le dernier élèment de la liste
  }
 
 /*! Insertion d'un élément à la fin */
 void Cache_List_Append(struct Cache_List *list, struct Cache_Block_Header *pbh){
-	struct Cache_List *current = list;
-	while(current->next){
-		current = current->next;
-	}
-	
-	//Création du nouvel élément
-	struct Cache_List *newElem = malloc(sizeof(struct Cache_List));
-	newElem->pheader = pbh;
-	newElem->next = NULL;
-	newElem->prev = current;
+	if(list->pheader == NULL){
+        printf("\t\tDEBUG Function[Cache_List_Append] : { list->pheader = %p AND pbh = %p } ajout de pbh here\n", list->pheader, pbh);
+        list->pheader = pbh;
+        list->next = list->next;
+        list->prev = list->prev;
+    }
+    else{
+        struct Cache_List *current = list;
+        while(current->next){
+            printf("\t\t\tDEBUG Function[Cache_List_Append] : INSIDE! { current = %p AND current->next = %p }\n", current, current->next);
+            current = current->next;
+        }
 
-	current->next = newElem;	//Insertion de l'élément à la fin de la liste
+        //Création du nouvel élément
+        struct Cache_List *newElem = malloc(sizeof(struct Cache_List));
+        newElem->pheader = pbh;
+        newElem->next = NULL;
+        newElem->prev = current;
 
+        current->next = newElem;	//Insertion de l'élément à la fin de la liste
+        printf("\t\t\tDEBUG Function[Cache_List_Append] : AJOUT FINI { current = %p AND current->prev = %p AND current->next = %p }\n", current, current->prev, current->next);
+    }
 }
 
 /*! Insertion d'un élément au début*/
 void Cache_List_Prepend(struct Cache_List *list, struct Cache_Block_Header *pbh){
-	//Création du nouvel élément
-	struct Cache_List *newElem = malloc(sizeof(struct Cache_List));
-	newElem->pheader = pbh;
-	newElem->next = list;
-	newElem->prev = NULL;
+	if(list->pheader == NULL){
+        printf("\t\tDEBUG Function[Cache_List_Prepend] : { list->pheader = %p AND pbh = %p } ajout de pbh here\n", list->pheader, pbh);
+        list->pheader = pbh;
+        list->next = list->next;
+        list->prev = list->prev;
+    }
+    else{
+        //On se positionne au début de la liste
+        struct Cache_List *current = list;
+        //printf("\t\tDEBUG Function[Cache_List_Prepend] : current = %p and current->prev = %p\n", current, current->prev);
+        while(current->prev){
+            printf("\t\t\tDEBUG Function[Cache_List_Prepend] : INSIDE! { current = %p AND current->prev = %p }\n", current, current->prev);
+            current = current->prev;
+        }
 
-	//On se positionne au début de la liste
-	struct Cache_List *current = list;
-	while(current->prev){
-		current = current->prev;
-	}
+        //Création du nouvel élément
+        struct Cache_List *newElem = malloc(sizeof(struct Cache_List));
+        newElem->pheader = pbh;
+        newElem->next = current;
+        newElem->prev = NULL;
 
-	current->prev = newElem; //On ajoute l'élément à la fin de la liste
+        current->prev = newElem; //On ajoute l'élément à la fin de la liste
+        printf("\t\t\tDEBUG Function[Cache_List_Prepend] : AJOUT FINI { current = %p AND current->prev = %p AND current->next = %p }\n", current, current->prev, current->next);
+    }
 }
 
 /*! Retrait du premier élément */

@@ -113,9 +113,13 @@ void test_Cache_List_Prepend(){
     afficher_struct_cache_list(cache_list);
 
     //Ajout
+    printf("\n\nCall 1 cache_list = %p AND cache_block_header1 = %p\n", cache_list, &cache_block_header1);
     Cache_List_Prepend(cache_list, &cache_block_header1);
+    printf("\n\nCall 2 cache_list = %p AND cache_block_header2 = %p\n", cache_list, &cache_block_header2);
     Cache_List_Prepend(cache_list, &cache_block_header2);
+    printf("\n\nCall 3 cache_list = %p AND cache_block_header3 = %p\n", cache_list, &cache_block_header3);
     Cache_List_Prepend(cache_list, &cache_block_header3);
+    printf("\n\nCall 4 cache_list = %p AND cache_block_header4 = %p\n", cache_list, &cache_block_header4);
     Cache_List_Prepend(cache_list, &cache_block_header4);
 
     printf("###Affichage de la structure après Prepend###\n");
@@ -124,48 +128,70 @@ void test_Cache_List_Prepend(){
     print_fin_test("test_Cache_List_Prepend");
 }
 
-/*! Retrait du premier élément */
-void test_Cache_List_Remove_First(struct Cache_List *list){
-    print_debut_test("test_Cache_List_Remove_First");
+/* Test des methodes precedente */
+void test_Cache_List_Create_Append_Prepend_Delete(){
+    print_debut_test("test_Cache_List_Create_Append_Prepend_Delete");
     struct Cache_List * cache_list = Cache_List_Create();
 
-    struct Cache_Block_Header cache_block_header1;
-    cache_block_header1.data = "data1";
-    cache_block_header1.ibcache = 11;
-    cache_block_header1.ibfile = 12;
-    cache_block_header1.flags = 13;
+    struct Cache_Block_Header * cache_block_header1 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header1->data = "data1";
+    cache_block_header1->ibcache = 11;
+    cache_block_header1->ibfile = 12;
+    cache_block_header1->flags = 13;
 
-    struct Cache_Block_Header cache_block_header2;
-    cache_block_header2.data = "data2";
-    cache_block_header2.ibcache = 21;
-    cache_block_header2.ibfile = 22;
-    cache_block_header2.flags = 23;
+    struct Cache_Block_Header * cache_block_header2 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header2->data = "data2";
+    cache_block_header2->ibcache = 21;
+    cache_block_header2->ibfile = 22;
+    cache_block_header2->flags = 23;
 
-    struct Cache_Block_Header cache_block_header3;
-    cache_block_header3.data = "data3";
-    cache_block_header3.ibcache = 31;
-    cache_block_header3.ibfile = 32;
-    cache_block_header3.flags = 33;
+    struct Cache_Block_Header * cache_block_header3 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header3->data = "data3";
+    cache_block_header3->ibcache = 31;
+    cache_block_header3->ibfile = 32;
+    cache_block_header3->flags = 33;
 
-    struct Cache_Block_Header cache_block_header4;
-    cache_block_header4.data = "data4";
-    cache_block_header4.ibcache = 41;
-    cache_block_header4.ibfile = 42;
-    cache_block_header4.flags = 43;
+    struct Cache_Block_Header * cache_block_header4 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header4->data = "data4";
+    cache_block_header4->ibcache = 41;
+    cache_block_header4->ibfile = 42;
+    cache_block_header4->flags = 43;
 
     printf("###Affichage de la structure avant ajout###\n");
     afficher_struct_cache_list(cache_list);
+    printf("###########################################\n\n");
 
     //Ajout
-    Cache_List_Prepend(cache_list, &cache_block_header1);
-    Cache_List_Prepend(cache_list, &cache_block_header2);
-    Cache_List_Prepend(cache_list, &cache_block_header3);
-    Cache_List_Prepend(cache_list, &cache_block_header4);
+    printf("\n\nCall 1 Append cache_list = %p AND cache_block_header1 = %p\n", cache_list, &cache_block_header1);
+    Cache_List_Append(cache_list, cache_block_header1);
+    printf("\n\nCall 2 Prepend cache_list = %p AND cache_block_header2 = %p\n", cache_list, &cache_block_header2);
+    Cache_List_Prepend(cache_list, cache_block_header2);
+    printf("\n\nCall 3 Append cache_list = %p AND cache_block_header3 = %p\n", cache_list, &cache_block_header3);
+    Cache_List_Append(cache_list, cache_block_header3);
+    printf("\n\nCall 4 Prepend cache_list = %p AND cache_block_header4 = %p\n", cache_list, &cache_block_header4);
+    Cache_List_Prepend(cache_list, cache_block_header4);
 
     printf("###Affichage de la structure après ajout###\n");
     afficher_struct_cache_list(cache_list);
+    printf("###########################################\n\n");
 
-    print_fin_test("test_Cache_List_Prepend");
+    Cache_List_Delete(cache_list);
+
+    printf("###Affichage de la structure après delete###\n");
+    /* ATTENTION : affichage seras effectuer et des caractere bizarre vont surement apparaitre.
+     * Comme on a fait un free() de cache_list on n'a plus le droit d'aller lire à cet emplacement memoire
+     * Donc la reussite de ce test est un message "invalid read" en lancant valgrind.
+     */
+    afficher_struct_cache_list(cache_list);
+    printf("###########################################\n\n");
+
+    print_fin_test("test_Cache_List_Create_Append_Prepend_Delete");
+}
+
+/*! Retrait du premier élément */
+void test_Cache_List_Remove_First(struct Cache_List *list){
+
+
 }
 
 /*! Retrait du dernier élément */
@@ -210,15 +236,20 @@ void print_fin_test(const char * methode){
 }
 
 void afficher_struct_cache_list(struct Cache_List * list){
+
     int nb_element = 0;
     struct Cache_List * liste_parcours = list;
-    printf("Parcours d'un Cache_List\n");
+    while(liste_parcours->prev){
+        liste_parcours = liste_parcours->prev;
+    }
+
+    printf("Parcours d'un Cache_List avec { liste_parcours = %p }\n", liste_parcours);
     while(liste_parcours){
-        printf("\tParcours de l'élément %d à l'adresse %p %p\n", nb_element, liste_parcours, liste_parcours->pheader);
-        if(nb_element != 0) {
+        printf("\tAffichage du cache_block_header %d à l'adresse { liste_parcours = %p AND liste_parcours->pheader = %p }\n", nb_element, liste_parcours, liste_parcours->pheader);
+        if(liste_parcours->pheader != NULL) {
             printf("\t\tibFile == %d\n", liste_parcours->pheader->ibfile);
-            printf("\t\tibFile == %d\n", liste_parcours->pheader->ibcache);
-            printf("\t\tibFile == %d\n", liste_parcours->pheader->flags);
+            printf("\t\tibcache == %d\n", liste_parcours->pheader->ibcache);
+            printf("\t\tibflags == %d\n", liste_parcours->pheader->flags);
             printf("\t\tibFile == %s\n", liste_parcours->pheader->data);
         }
         nb_element++;
@@ -243,7 +274,10 @@ int main(int argc, char * argv[]){
     //test_Cache_List_Append();
 
     //Test 3 test_Cache_List_Prepend
-    test_Cache_List_Prepend();
+    //test_Cache_List_Prepend();
+
+    //Test 4 test_Cache_List_Create_Append_Prepend_Delete
+    test_Cache_List_Create_Append_Prepend_Delete();
 }
 
 #endif
