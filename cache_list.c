@@ -171,7 +171,7 @@ struct Cache_Block_Header *Cache_List_Remove_Last(struct Cache_List *list){
 
 /*! Retrait d'un élément quelconque */
 struct Cache_Block_Header * Cache_List_Remove(struct Cache_List *list, struct Cache_Block_Header *pbh){
-    //Positionnnement au debut de la liste
+    //Positionnnement a la fin de la liste
     struct Cache_List * liste_a_parcourir = list;
     printf("\tDEBUG Function[Cache_List_Remove] : { list = %p }\n", liste_a_parcourir);
     while(liste_a_parcourir->next){
@@ -180,38 +180,97 @@ struct Cache_Block_Header * Cache_List_Remove(struct Cache_List *list, struct Ca
 
     printf("\tDEBUG Function[Cache_List_Remove] : { liste_a_parcourir = %p }\n", liste_a_parcourir);
     if(liste_a_parcourir == list){
-        if(!liste_a_parcourir->next){
+        if(!liste_a_parcourir->prev){
             if(liste_a_parcourir->pheader != pbh){
+                printf("\t\tDEBUG Function[Cache_List_Remove] : No Previous AND No Next\n");
                 //Existe pas
                 return NULL;
             }
             else{
+                printf("\t\tDEBUG Function[Cache_List_Remove] : Found! Was only element. List is now empty list\n");
                 struct Cache_Block_Header * retour = liste_a_parcourir->pheader;
-                free(liste_a_parcourir->prev); //Pas de free pour le Cache_block_header par contre car on le retourne
-                liste_a_parcourir = liste_a_parcourir->next;
+                liste_a_parcourir->pheader = NULL;
                 liste_a_parcourir->prev = NULL;
+                liste_a_parcourir->next = NULL;
                 return retour;
             }
         }
     }
 
-    while( (liste_a_parcourir->next) && (liste_a_parcourir->pheader != pbh)){
-        liste_a_parcourir = liste_a_parcourir->next;
+    //Parcours de la liste tant qu'il existe un precedent et que le pheader actuel n'est pas celui recherche
+    while( (liste_a_parcourir->prev) && (liste_a_parcourir->pheader != pbh)){
+        liste_a_parcourir = liste_a_parcourir->prev;
     }
 
     if(liste_a_parcourir->pheader == pbh){
-        struct Cache_Block_Header * retour = liste_a_parcourir->pheader;
-        struct Cache_List * previous = liste_a_parcourir->prev;
-        struct Cache_List * next = liste_a_parcourir->next;
-        if(previous){
-            previous->next = next;
+        struct Cache_Block_Header *retour = liste_a_parcourir->pheader;
+        if(liste_a_parcourir == list){
+
+            //Ici liste_a_parcourir est le meme pointeur que list. Si on le supprime le pointeur sur list ne vaudra
+            //rien. Du coup, il faut decaler les struct.
+            if(!liste_a_parcourir->prev && !liste_a_parcourir->next){
+                //Only element
+                liste_a_parcourir->pheader = NULL;
+                return retour;
+            }
+            else if(!liste_a_parcourir->prev){
+                //Decale tout vers la gauche
+                printf("\t\tDEBUG Function[Cache_List_Remove] : Decalage a gauche\n");
+                int deplace = 0;
+                while(liste_a_parcourir->next) {
+                    deplace = 1;
+                    liste_a_parcourir->pheader = liste_a_parcourir->next->pheader;
+                    liste_a_parcourir = liste_a_parcourir->next;
+                }
+                if(deplace){
+                    liste_a_parcourir->prev->next = NULL;
+                    free(liste_a_parcourir);
+                }
+                return retour;
+            }
+            else if(!liste_a_parcourir->next){
+                //Decale tout vers la droite
+                printf("\t\tDEBUG Function[Cache_List_Remove] : Decalage a droite\n");
+                int deplace = 0;
+                while(liste_a_parcourir->prev) {
+                    deplace = 1;
+                    liste_a_parcourir->pheader = liste_a_parcourir->prev->pheader;
+                    liste_a_parcourir = liste_a_parcourir->prev;
+                }
+                if(deplace){
+                    liste_a_parcourir->next->prev = NULL;
+                    free(liste_a_parcourir);
+                }
+                return retour;
+            }
+            else{
+                printf("\t\tDEBUG Function[Cache_List_Remove] : Decalage a aleatoire(a gauche)\n");
+                int deplace = 0;
+                while(liste_a_parcourir->next) {
+                    deplace = 1;
+                    liste_a_parcourir->pheader = liste_a_parcourir->next->pheader;
+                    liste_a_parcourir = liste_a_parcourir->next;
+                }
+                if(deplace){
+                    liste_a_parcourir->prev->next = NULL;
+                    free(liste_a_parcourir);
+                }
+                return retour;
+            }
         }
-        if(next){
-            next->prev = previous;
+        else {
+            if (liste_a_parcourir->prev) {
+                liste_a_parcourir->prev->next = liste_a_parcourir->next;
+            }
+            if (liste_a_parcourir->next) {
+                liste_a_parcourir->next->prev = liste_a_parcourir->prev;
+            }
+            free(liste_a_parcourir);
+            return retour;
         }
-        return retour;
     }
     else{
+        //Not Found
         return NULL;
     }
 }

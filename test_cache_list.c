@@ -360,22 +360,22 @@ void test_Cache_List_Remove(){
     afficher_struct_cache_list(cache_list);
 
     print_around_dieze("DELETE cache_block_header1");
-    cache_list = Cache_List_Remove(cache_list, cache_block_header1);
+    Cache_List_Remove(cache_list, cache_block_header1);
     afficher_struct_cache_list(cache_list);
     print_around_dieze("");
 
     print_around_dieze("DELETE cache_block_header2");
-    cache_list = Cache_List_Remove(cache_list, cache_block_header2);
+    Cache_List_Remove(cache_list, cache_block_header2);
     afficher_struct_cache_list(cache_list);
     print_around_dieze("");
 
     print_around_dieze("DELETE cache_block_header3");
-    cache_list = Cache_List_Remove(cache_list, cache_block_header3);
+    Cache_List_Remove(cache_list, cache_block_header3);
     afficher_struct_cache_list(cache_list);
     print_around_dieze("");
 
     print_around_dieze("DELETE cache_block_header4");
-    cache_list = Cache_List_Remove(cache_list, cache_block_header4);
+    Cache_List_Remove(cache_list, cache_block_header4);
     afficher_struct_cache_list(cache_list);
     print_around_dieze("");
 
@@ -420,6 +420,10 @@ void print_around_dieze(const char * message){
 
 void afficher_struct_cache_list(struct Cache_List * list){
 
+    if(list == NULL){
+        printf("DEBUG Function[afficher_struct_cache_list] : list == NULL!\n############NOTHING TO DISPLAY#################\n");
+        return;
+    }
     int nb_element = 0;
     struct Cache_List * liste_parcours = list;
     while(liste_parcours->prev){
