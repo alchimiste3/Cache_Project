@@ -14,13 +14,13 @@ SRC = $(wildcard *.c)
 
 # Exécutables à construire
 
-PROGS = tst_Cache_RAND tst_Cache_FIFO tst_Cache_LRU tst_Cache_NUR test_cache_list
+PROGS = tst_Cache_RAND tst_Cache_FIFO tst_Cache_LRU tst_Cache_NUR
 
 # Fichiers de bibliothèque à reconstruire : initialement vide. 
 # Mettre ici les *.o de la bibliothèque que vous avez réimplémentés
 # (cache.o low_cache.o cache_list.o)
 
-USRFILES = 
+USRFILES = cache.o low_cache.o
 
 #------------------------------------------------------------------
 # Commandes
@@ -53,8 +53,7 @@ tst_Cache_% : tst_Cache.o %_strategy.o $(USRFILES)
 # Exécutables : décommentés les exécutables des stratégies que vous avez implémentées
 # N'enlevez pas depend !
 
-all : depend tst_Cache_RAND tst_Cache_LRU test_cache_list# tst_Cache_NUR 
-
+all : depend tst_Cache_RAND tst_Cache_FIFO tst_Cache_LRU tst_Cache_NUR
 
 # Nettoyage 
 clean : all
@@ -63,7 +62,7 @@ clean : all
 # Nettoyage complet
 full_clean :
 	-rm -f *.o *.out foo
-	-rm -f tst_Cache_RAND tst_Cache_FIFO tst_Cache_LRU tst_Cache_NUR test_cache_list
+	-rm -f tst_Cache_RAND tst_Cache_FIFO tst_Cache_LRU tst_Cache_NUR
 	-rm depend.out
 	-rm -rf Plots
 

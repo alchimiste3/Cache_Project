@@ -29,13 +29,7 @@ struct Cache_List * list;
 void *Strategy_Create(struct Cache *pcache) 
 {
     list = Cache_List_Create();
-
-    struct Cache_Block_Header *h = pcache->headers;
-
-    for(int i = 0 ; i < pcache->nblocks ; i++){
-        Cache_List_Prepend(list,&h[i]);
-    }
-
+    return (void *) list;
 }
 
 /*!
@@ -51,6 +45,7 @@ void Strategy_Close(struct Cache *pcache)
  */
 void Strategy_Invalidate(struct Cache *pcache)
 { 
+    Cache_List_Clear(list);
 }
 
 /*! 
@@ -62,7 +57,10 @@ struct Cache_Block_Header *Strategy_Replace_Block(struct Cache *pcache)
     struct Cache_Block_Header *pbh;
 
     /* On cherche d'abord un bloc invalide */
-    if ((pbh = Get_Free_Block(pcache)) != NULL) return pbh;
+    if ((pbh = Get_Free_Block(pcache)) != NULL){
+        Cache_List_Append(list, pbh);
+        return pbh;
+    } 
 
     if(Cache_List_Is_Empty(list)){
         perror("pas possible");
