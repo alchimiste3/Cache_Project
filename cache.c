@@ -130,15 +130,14 @@ Cache_Error Cache_Invalidate(struct Cache *pcache){
 
 
 //permet de lire le fichier et d'écrire sur le cache
-Cache_Error Read_Fichier(struct Cache *pcache, struct Cache_Block_Header * tmp, int irfile){
+Cache_Error Read_Fichier(struct Cache *pcache, struct Cache_Block_Header * tmp){
     
-    int ibfile = irfile / (pcache->nrecords);
 
-    if(fseek(pcache->fp, DADDR(pcache, ibfile), SEEK_SET) != 0) return CACHE_KO;
+    if(fseek(pcache->fp, DADDR(pcache, tmp->ibfile), SEEK_SET) != 0) return CACHE_KO;
 
-    fgets(tmp->data, pcache->blocksz, pcache->fp);
+    //fgets(tmp->data, pcache->blocksz, pcache->fp);
 
-
+    if (fread(tmp->data, 1, pcache->blocksz, pcache->fp) != pcache->blocksz) return CACHE_KO;
 }
 
 //permet
@@ -147,7 +146,9 @@ Cache_Error Write_Fichier(struct Cache *pcache, struct Cache_Block_Header * tmp)
     if((tmp->flags & MODIF) > 0){
         if(fseek(pcache->fp, DADDR(pcache, tmp->ibfile), SEEK_SET) != 0) return CACHE_KO;
 
-        if(fputs(tmp->data, pcache->fp) == EOF) return CACHE_KO;
+        //if(fputs(tmp->data, pcache->fp) == EOF) return CACHE_KO;
+
+        if (fwrite(tmp->data, 1, pcache->blocksz, pcache->fp) != pcache->blocksz) return CACHE_KO;
 
         tmp->flags -= MODIF;
     }
@@ -206,7 +207,7 @@ Cache_Error Cache_Read(struct Cache *pcache, int irfile, void *precord) {
         printf("FIFO avnt write");
         Write_Fichier(pcache,tmp);
         printf("FIFO avnt read");
-        Read_Fichier(pcache,tmp, irfile);
+        Read_Fichier(pcache,tmp);
         printf("FIFO apres write");
 
         tmp->ibfile = ibfile;
@@ -272,11 +273,12 @@ Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord) {
 
         tmp = Strategy_Replace_Block(pcache);
 
+        tmp->ibfile = ibfile;
+
         Write_Fichier(pcache,tmp);
 
-        Read_Fichier(pcache,tmp, irfile);
+        Read_Fichier(pcache,tmp);
 
-        tmp->ibfile = ibfile;
 
         tmp->flags |= VALID;
 

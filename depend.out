@@ -1,4 +1,5 @@
 cache.o: cache.c cache.h low_cache.h strategy.h
+cache_list.o: cache_list.c cache_list.h
 FIFO_strategy.o: FIFO_strategy.c strategy.h low_cache.h cache.h \
  cache_list.h random.h
 low_cache.o: low_cache.c low_cache.h cache.h
@@ -6,4 +7,5 @@ LRU_strategy.o: LRU_strategy.c strategy.h low_cache.h cache.h \
  cache_list.h random.h
 NUR_strategy.o: NUR_strategy.c strategy.h low_cache.h cache.h random.h
 RAND_strategy.o: RAND_strategy.c strategy.h low_cache.h cache.h random.h
+test_cache_list.o: test_cache_list.c cache_list.h low_cache.h cache.h
 tst_Cache.o: tst_Cache.c cache.h strategy.h random.h

@@ -31,6 +31,7 @@ void R_Invalidate(struct Cache *pcache){
             }        
         }
 
+        (pcache->instrument).n_deref++;
         nderef = 0;
 
     }
