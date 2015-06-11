@@ -3,17 +3,16 @@
 
 //! Recherche d'un bloc libre.
 struct Cache_Block_Header *Get_Free_Block(struct Cache *pcache) {
-	struct Cache_Block_Header *ret = pcache->pfree;
-	if (ret == NULL)
-		return ret;
-	ret->flags |= VALID;
-	if(((pcache->pfree)+1)->ibcache < pcache->nblocks){
-		(pcache->pfree)++;
-	}
-	else{
-		pcache->pfree = NULL;
+	struct Cache_Block_Header *res;
+
+	int i ;
+
+	for(i = 0; i < pcache->nblocks ; i++){
+		res =  &(pcache->headers[i]);
+
+		if((res->flags & VALID) == 0) return res;
 	}
 
-	return ret;
+	return NULL;
 
 }
