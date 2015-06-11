@@ -385,13 +385,111 @@ void test_Cache_List_Remove(){
 }
 
 /*! Remise en l'état de liste vide */
-void test_Cache_List_Clear(struct Cache_List *list){
-    
+void test_Cache_List_Clear(){
+    print_debut_test("test_Cache_List_Clear");
+    struct Cache_List * cache_list = Cache_List_Create();
+
+    struct Cache_Block_Header * cache_block_header1 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header1->data = "data1";
+    cache_block_header1->ibcache = 11;
+    cache_block_header1->ibfile = 12;
+    cache_block_header1->flags = 13;
+
+    struct Cache_Block_Header * cache_block_header2 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header2->data = "data2";
+    cache_block_header2->ibcache = 21;
+    cache_block_header2->ibfile = 22;
+    cache_block_header2->flags = 23;
+
+    struct Cache_Block_Header * cache_block_header3 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header3->data = "data3";
+    cache_block_header3->ibcache = 31;
+    cache_block_header3->ibfile = 32;
+    cache_block_header3->flags = 33;
+
+    struct Cache_Block_Header * cache_block_header4 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header4->data = "data4";
+    cache_block_header4->ibcache = 41;
+    cache_block_header4->ibfile = 42;
+    cache_block_header4->flags = 43;
+
+    printf("###Affichage de la structure avant ajout###\n");
+    afficher_struct_cache_list(cache_list);
+    printf("###########################################\n\n");
+
+    //Ajout
+    printf("\n\nCall 1 Append cache_list = %p AND cache_block_header1 = %p\n", cache_list, &cache_block_header1);
+    Cache_List_Prepend(cache_list, cache_block_header1);
+    printf("\n\nCall 2 Prepend cache_list = %p AND cache_block_header2 = %p\n", cache_list, &cache_block_header2);
+    Cache_List_Append(cache_list, cache_block_header2);
+    printf("\n\nCall 3 Append cache_list = %p AND cache_block_header3 = %p\n", cache_list, &cache_block_header3);
+    Cache_List_Prepend(cache_list, cache_block_header3);
+    printf("\n\nCall 4 Prepend cache_list = %p AND cache_block_header4 = %p\n", cache_list, &cache_block_header4);
+    Cache_List_Append(cache_list, cache_block_header4);
+
+    print_around_dieze("Affichage liste avant clear");
+    afficher_struct_cache_list(cache_list);
+
+    Cache_List_Clear(cache_list);
+
+    print_around_dieze("Affichage liste apres clear");
+    afficher_struct_cache_list(cache_list);
+    print_fin_test("test_Cache_List_Clear");
 }
 
 /*! Test de liste vide */
-void test_Cache_List_Is_Empty(struct Cache_List *list){
-    
+void test_Cache_List_Is_Empty(){
+    print_debut_test("test_Cache_List_Is_Empty");
+    struct Cache_List * cache_list = Cache_List_Create();
+
+    struct Cache_Block_Header * cache_block_header1 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header1->data = "data1";
+    cache_block_header1->ibcache = 11;
+    cache_block_header1->ibfile = 12;
+    cache_block_header1->flags = 13;
+
+    struct Cache_Block_Header * cache_block_header2 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header2->data = "data2";
+    cache_block_header2->ibcache = 21;
+    cache_block_header2->ibfile = 22;
+    cache_block_header2->flags = 23;
+
+    struct Cache_Block_Header * cache_block_header3 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header3->data = "data3";
+    cache_block_header3->ibcache = 31;
+    cache_block_header3->ibfile = 32;
+    cache_block_header3->flags = 33;
+
+    struct Cache_Block_Header * cache_block_header4 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header4->data = "data4";
+    cache_block_header4->ibcache = 41;
+    cache_block_header4->ibfile = 42;
+    cache_block_header4->flags = 43;
+
+    printf("###Affichage de la structure avant ajout###\n");
+    afficher_struct_cache_list(cache_list);
+    printf("###########################################\n\n");
+
+    //Ajout
+    printf("\n\nCall 1 Append cache_list = %p AND cache_block_header1 = %p\n", cache_list, &cache_block_header1);
+    Cache_List_Prepend(cache_list, cache_block_header1);
+    printf("\n\nCall 2 Prepend cache_list = %p AND cache_block_header2 = %p\n", cache_list, &cache_block_header2);
+    Cache_List_Append(cache_list, cache_block_header2);
+    printf("\n\nCall 3 Append cache_list = %p AND cache_block_header3 = %p\n", cache_list, &cache_block_header3);
+    Cache_List_Prepend(cache_list, cache_block_header3);
+    printf("\n\nCall 4 Prepend cache_list = %p AND cache_block_header4 = %p\n", cache_list, &cache_block_header4);
+    Cache_List_Append(cache_list, cache_block_header4);
+
+    print_around_dieze("Affichage liste avant clear");
+    afficher_struct_cache_list(cache_list);
+
+    Cache_List_Clear(cache_list);
+
+    print_around_dieze("Affichage liste apres clear");
+    afficher_struct_cache_list(cache_list);
+
+    printf("###### IS EMPTY? Cache_list == %p",Cache_List_Is_Empty(cache_list));
+    print_fin_test("test_Cache_List_Is_Empty");
 }
 
 /*! Transférer un élément à la fin */
@@ -473,7 +571,14 @@ int main(int argc, char * argv[]){
     //test_Cache_List_Remove_Last();
 
     //test_Cache_List_Remove
-    test_Cache_List_Remove();
+    //test_Cache_List_Remove();
+
+    //test_Cache_List_Clear
+    //test_Cache_List_Clear();
+
+    //Cache_List_Is_Empty
+    Cache_List_Is_Empty();
+
 }
 
 #endif

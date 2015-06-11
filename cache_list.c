@@ -45,8 +45,6 @@ void Cache_List_Append(struct Cache_List *list, struct Cache_Block_Header *pbh){
 	if(list->pheader == NULL){
         printf("\t\tDEBUG Function[Cache_List_Append] : { list->pheader = %p AND pbh = %p } ajout de pbh here\n", list->pheader, pbh);
         list->pheader = pbh;
-        list->next = list->next;
-        list->prev = list->prev;
     }
     else{
         struct Cache_List *current = list;
@@ -71,8 +69,6 @@ void Cache_List_Prepend(struct Cache_List *list, struct Cache_Block_Header *pbh)
 	if(list->pheader == NULL){
         printf("\t\tDEBUG Function[Cache_List_Prepend] : { list->pheader = %p AND pbh = %p } ajout de pbh here\n", list->pheader, pbh);
         list->pheader = pbh;
-        list->next = list->next;
-        list->prev = list->prev;
     }
     else{
         //On se positionne au début de la liste
@@ -277,6 +273,21 @@ struct Cache_Block_Header * Cache_List_Remove(struct Cache_List *list, struct Ca
 
 /*! Remise en l'état de liste vide */
 void Cache_List_Clear(struct Cache_List *list){
+    struct Cache_List * current = list;
+    while(current->prev){
+        printf("\tDEBUG Function[Cache_List_Remove] : moving at beginning of list { current = %p }\n", current);
+        current = current->prev;
+    }
+
+    while(current->next){
+        printf("\tDEBUG Function[Cache_List_Remove] : cleaning list on { current = %p }\n", current);
+        if(!current == list){
+            free(current->pheader);
+            free(current);
+        }
+        current = current->next;
+    }
+    free(list->pheader);
     list->pheader = NULL;
     list->prev = NULL;
     list->next = NULL;
@@ -284,7 +295,7 @@ void Cache_List_Clear(struct Cache_List *list){
 
 /*! Test de liste vide */
 bool Cache_List_Is_Empty(struct Cache_List *list){
-    return (list->next == NULL) && (list->prev == NULL);
+    return (list->pheader == NULL) && (list->next == NULL) && (list->prev == NULL);
 }
 
 /*! Transférer un élément à la fin */
