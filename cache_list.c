@@ -171,24 +171,49 @@ struct Cache_Block_Header *Cache_List_Remove_Last(struct Cache_List *list){
 
 /*! Retrait d'un élément quelconque */
 struct Cache_Block_Header * Cache_List_Remove(struct Cache_List *list, struct Cache_Block_Header *pbh){
-    if(Cache_List_Is_Empty(list)){
-        perror("La liste cache_list donnee est vide!");
-        exit(1);
-    }
-    
+    //Positionnnement au debut de la liste
     struct Cache_List * liste_a_parcourir = list;
-    struct Cache_Block_Header * cbh;
-    while((liste_a_parcourir = liste_a_parcourir->next) != NULL){
-        if(liste_a_parcourir->pheader == pbh){
-            //remove
-            struct Cache_List * prev = liste_a_parcourir->prev;
-            struct Cache_List * next = liste_a_parcourir->next;
-            prev->next = next;
-            next->prev = prev;
-            return liste_a_parcourir->pheader;
+    printf("\tDEBUG Function[Cache_List_Remove] : { list = %p }\n", liste_a_parcourir);
+    while(liste_a_parcourir->next){
+        liste_a_parcourir = liste_a_parcourir->next;
+    }
+
+    printf("\tDEBUG Function[Cache_List_Remove] : { liste_a_parcourir = %p }\n", liste_a_parcourir);
+    if(liste_a_parcourir == list){
+        if(!liste_a_parcourir->next){
+            if(liste_a_parcourir->pheader != pbh){
+                //Existe pas
+                return NULL;
+            }
+            else{
+                struct Cache_Block_Header * retour = liste_a_parcourir->pheader;
+                free(liste_a_parcourir->prev); //Pas de free pour le Cache_block_header par contre car on le retourne
+                liste_a_parcourir = liste_a_parcourir->next;
+                liste_a_parcourir->prev = NULL;
+                return retour;
+            }
         }
     }
-    return liste_a_parcourir->pheader;
+
+    while( (liste_a_parcourir->next) && (liste_a_parcourir->pheader != pbh)){
+        liste_a_parcourir = liste_a_parcourir->next;
+    }
+
+    if(liste_a_parcourir->pheader == pbh){
+        struct Cache_Block_Header * retour = liste_a_parcourir->pheader;
+        struct Cache_List * previous = liste_a_parcourir->prev;
+        struct Cache_List * next = liste_a_parcourir->next;
+        if(previous){
+            previous->next = next;
+        }
+        if(next){
+            next->prev = previous;
+        }
+        return retour;
+    }
+    else{
+        return NULL;
+    }
 }
 
 /*! Remise en l'état de liste vide */

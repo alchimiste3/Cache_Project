@@ -11,6 +11,7 @@
 void print_debut_test(const char * methode);
 void print_fin_test(const char * methode);
 void afficher_struct_cache_list(struct Cache_List * list);
+void print_around_dieze(const char * message);
 
 /*! Création d'une liste de blocs */
 void test_Cache_List_Create(){
@@ -313,9 +314,74 @@ void test_Cache_List_Remove_Last(){
 }
 
 /*! Retrait d'un élément quelconque */
-void test_Cache_List_Remove(struct Cache_List *list,
-                                             struct Cache_Block_Header *pbh){
-    
+void test_Cache_List_Remove(){
+    print_debut_test("test_Cache_List_Remove");
+    struct Cache_List * cache_list = Cache_List_Create();
+
+    struct Cache_Block_Header * cache_block_header1 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header1->data = "data1";
+    cache_block_header1->ibcache = 11;
+    cache_block_header1->ibfile = 12;
+    cache_block_header1->flags = 13;
+
+    struct Cache_Block_Header * cache_block_header2 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header2->data = "data2";
+    cache_block_header2->ibcache = 21;
+    cache_block_header2->ibfile = 22;
+    cache_block_header2->flags = 23;
+
+    struct Cache_Block_Header * cache_block_header3 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header3->data = "data3";
+    cache_block_header3->ibcache = 31;
+    cache_block_header3->ibfile = 32;
+    cache_block_header3->flags = 33;
+
+    struct Cache_Block_Header * cache_block_header4 = malloc(sizeof(struct Cache_Block_Header));
+    cache_block_header4->data = "data4";
+    cache_block_header4->ibcache = 41;
+    cache_block_header4->ibfile = 42;
+    cache_block_header4->flags = 43;
+
+    printf("###Affichage de la structure avant ajout###\n");
+    afficher_struct_cache_list(cache_list);
+    printf("###########################################\n\n");
+
+    //Ajout
+    printf("\n\nCall 1 Append cache_list = %p AND cache_block_header1 = %p\n", cache_list, &cache_block_header1);
+    Cache_List_Prepend(cache_list, cache_block_header1);
+    printf("\n\nCall 2 Prepend cache_list = %p AND cache_block_header2 = %p\n", cache_list, &cache_block_header2);
+    Cache_List_Append(cache_list, cache_block_header2);
+    printf("\n\nCall 3 Append cache_list = %p AND cache_block_header3 = %p\n", cache_list, &cache_block_header3);
+    Cache_List_Prepend(cache_list, cache_block_header3);
+    printf("\n\nCall 4 Prepend cache_list = %p AND cache_block_header4 = %p\n", cache_list, &cache_block_header4);
+    Cache_List_Append(cache_list, cache_block_header4);
+
+    printf("\n#############Affichage des blocks apres les ajouts\n\n");
+    afficher_struct_cache_list(cache_list);
+
+    print_around_dieze("DELETE cache_block_header1");
+    cache_list = Cache_List_Remove(cache_list, cache_block_header1);
+    afficher_struct_cache_list(cache_list);
+    print_around_dieze("");
+
+    print_around_dieze("DELETE cache_block_header2");
+    cache_list = Cache_List_Remove(cache_list, cache_block_header2);
+    afficher_struct_cache_list(cache_list);
+    print_around_dieze("");
+
+    print_around_dieze("DELETE cache_block_header3");
+    cache_list = Cache_List_Remove(cache_list, cache_block_header3);
+    afficher_struct_cache_list(cache_list);
+    print_around_dieze("");
+
+    print_around_dieze("DELETE cache_block_header4");
+    cache_list = Cache_List_Remove(cache_list, cache_block_header4);
+    afficher_struct_cache_list(cache_list);
+    print_around_dieze("");
+
+    printf("###########################################\n\n");
+
+    print_fin_test("test_Cache_List_Remove");
 }
 
 /*! Remise en l'état de liste vide */
@@ -346,6 +412,10 @@ void print_debut_test(const char * methode){
 
 void print_fin_test(const char * methode){
     printf("\n*****************FIN TEST %s******************\n", methode);
+}
+
+void print_around_dieze(const char * message){
+    printf("\n########################### %s ###########################\n\n", message);
 }
 
 void afficher_struct_cache_list(struct Cache_List * list){
@@ -396,8 +466,10 @@ int main(int argc, char * argv[]){
     //test_Cache_List_Remove_First();
 
     //test_Cache_List_Remove_Last
-    test_Cache_List_Remove_Last();
+    //test_Cache_List_Remove_Last();
 
+    //test_Cache_List_Remove
+    test_Cache_List_Remove();
 }
 
 #endif
