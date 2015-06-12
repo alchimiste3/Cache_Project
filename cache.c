@@ -6,12 +6,21 @@
 #include <unistd.h>
 #include <string.h>
 
-extern int fileno(FILE *stream);
 
 
 int compteurAccess;
 
 //! Création du cache.
+/*
+ * Crée un cache associé au fichier de nom fic : la cache comporte nblocks , chaque
+ * bloc contenant nrecords enregistrements de taille recordsz caractères.
+ * Le dernier paramètre ( nderef ) n’est utilisé que pour la stratégie nur ; pour les autres
+ * stratégies sa valeur est ignorée. Dans le cas de nur, le bit de référence R devra être
+ * remis à 0 (pour tous les blocs du cache) tous les nderef accès (lecture ou écriture).
+ * La fonction ouvre le fichier en le créant et le remplissant si nécessaire, alloue et
+ * initialise les structures de données du cache, et retourne un pointeur sur le nouveau
+ * cache.
+ */
 struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
                            size_t recordsz, unsigned nderef){
     
@@ -55,6 +64,10 @@ struct Cache *Cache_Create(const char *fic, unsigned nblocks, unsigned nrecords,
 }
 
 //! Fermeture (destruction) du cache.
+/*
+ * Détruit le cache pointé par pcache : synchronise le cache et le fichier grâce à Cache_Sync() ,
+ * ferme le fichier et détruit toutes les structures de données du cache.
+ */
 Cache_Error Cache_Close(struct Cache *pcache){
     if(Cache_Sync(pcache) == CACHE_KO) return CACHE_KO;
     Strategy_Close(pcache);
@@ -73,6 +86,12 @@ Cache_Error Cache_Close(struct Cache *pcache){
 }
 
 //! Synchronisation du cache.
+/*
+ * Synchronise le contenu du cache avec celui du fichier : écrit sur disque tous les blocs
+ * dont le bit M vaut 1 et remet à 0 ce bit. L’application peut appeler Cache_Sync()
+ * quand elle le souhaite, mais il y a un appel automatique tous les NSYNC accès (par
+ * défaut NSYNC vaut 1000, défini dans low_cache.c ).
+ */
 Cache_Error Cache_Sync(struct Cache *pcache){
 
     //printf("Synchro\n");
@@ -111,6 +130,13 @@ Cache_Error Cache_Sync(struct Cache *pcache){
 }
 
 //! Invalidation du cache.
+/*
+ * Invalide le cache, c’est-à-dire met à 0 le bit V de tous les blocs. C’est donc comme si
+ * le cache était vide : aucun bloc ne contient plus d’information utile.
+ * Noter que cette fonction Cache_Invalidate() ne devrait pas faire partie de l’interface
+ * utilisateur du cache. Néanmoins, elle est nécessaire au simulateur, puisqu’elle permet
+ * d’enchainer des tests différents sans avoir à réallouer le cache.
+ */
 Cache_Error Cache_Invalidate(struct Cache *pcache){
     struct Cache_Block_Header *headers = pcache->headers;
 
@@ -147,6 +173,7 @@ Cache_Error Write_Fichier(struct Cache *pcache, struct Cache_Block_Header * tmp)
        
         tmp->flags -= MODIF;
     }
+    return CACHE_OK;
 }
 
 struct Cache_Block_Header * Trouver_Block_Cache(struct Cache * pcache, int irfile, const void * precord) 
@@ -192,10 +219,11 @@ struct Cache_Block_Header * Trouver_Block_Cache(struct Cache * pcache, int irfil
 
 //! Lecture  (à travers le cache).
 /*
-Lecture à travers le cache de l’enregistrement d’indice irfile dans
-le fichier. Le paramètre precord doit pointer sur un buffer fourni par l’application et
-au moins de taille recordsz . L’enregistrement sera transféré du cache dans ce buffer
-pour une lecture.*/
+ * Lecture à travers le cache de l’enregistrement d’indice irfile dans
+ * le fichier. Le paramètre precord doit pointer sur un buffer fourni par l’application et
+ * au moins de taille recordsz . L’enregistrement sera transféré du cache dans ce buffer
+ * pour une lecture.
+ */
 Cache_Error Cache_Read(struct Cache *pcache, int irfile, void *precord) {
     // printf("\nRead :\n");
 
@@ -237,6 +265,11 @@ Cache_Error Cache_Read(struct Cache *pcache, int irfile, void *precord) {
 }
 
 //! Écriture (à travers le cache).
+/*
+ * Ecriture à travers le cache de l’enregistrement d’indice irfile dans
+ * le fichier. Le paramètre precord doit pointer sur un buffer fourni par l’application et
+ * au moins de taille recordsz . L’enregistrement sera transféré du buffer vers le cache.
+ */
 Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord) {
     // printf("\nWrite :\n");
     // printf("irfile = %d\n", irfile);
@@ -275,6 +308,11 @@ Cache_Error Cache_Write(struct Cache *pcache, int irfile, const void *precord) {
 
 
 //! Résultat de l'instrumentation.
+/*
+ * Retourne une copie de la structure d’instrumentation du cache pointé par pcache .
+ * Tous les compteurs de la structure courante sont remis à 0 par cette
+ * fonction.
+ */
 struct Cache_Instrument *Cache_Get_Instrument(struct Cache *pcache) {
 	struct Cache_Instrument *pinstrument = malloc(sizeof(struct Cache_Instrument));
 	memcpy(pinstrument, &(pcache->instrument), sizeof(struct Cache_Instrument));
