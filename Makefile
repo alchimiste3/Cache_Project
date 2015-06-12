@@ -14,7 +14,7 @@ SRC = $(wildcard *.c)
 
 # Exécutables à construire
 
-PROGS = tst_Cache_RAND tst_Cache_FIFO tst_Cache_LRU tst_Cache_NUR
+PROGS = tst_Cache_RAND tst_Cache_FIFO tst_Cache_LRU tst_Cache_NUR test_cache_list
 
 # Fichiers de bibliothèque à reconstruire : initialement vide. 
 # Mettre ici les *.o de la bibliothèque que vous avez réimplémentés
